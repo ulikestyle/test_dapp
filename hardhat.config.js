@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
+let secret = require("./secret")
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -21,6 +22,10 @@ module.exports = {
   networks: {
     hardhat: {
       chainId: 31337
+    },
+    ropsten: {
+      url: secret.url,
+      accounts: [secret.key]
     },
   }
 };

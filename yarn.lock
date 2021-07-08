@@ -1463,6 +1463,11 @@
     "@types/sinon-chai" "^3.2.3"
     "@types/web3" "1.0.19"
 
+"@openzeppelin/contracts@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.nlark.com/@openzeppelin/contracts/download/@openzeppelin/contracts-4.2.0.tgz#260d921d99356e48013d9d760caaa6cea35dc642"
+  integrity sha1-Jg2SHZk1bkgBPZ12DKqmzqNdxkI=
+
 "@resolver-engine/core@^0.3.3":
   version "0.3.3"
   resolved "https://registry.npm.taobao.org/@resolver-engine/core/download/@resolver-engine/core-0.3.3.tgz#590f77d85d45bc7ecc4e06c654f41345db6ca967"

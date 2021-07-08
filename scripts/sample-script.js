@@ -20,6 +20,13 @@ async function main() {
   await greeter.deployed();
 
   console.log("Greeter deployed to:", greeter.address);
+
+  const MayaCollectible = await hre.ethers.getContractFactory("MayaCollectible");
+  const maya = await MayaCollectible.deploy();
+
+  await maya.deployed();
+
+  console.log("MayaCollectible deployed to:", maya.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

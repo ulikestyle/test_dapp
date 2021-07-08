@@ -12,7 +12,9 @@
 // import Greeter from "../artifacts/contracts/Greeter.sol/Greeter.json";
 import Greeter from "../../artifacts/contracts/Greeter.sol/Greeter.json";
 import { ethers } from "ethers";
-const greeterAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+// const greeterAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+const greeterAddress = "0x5F1a9e86AD25190c0388c2C62F92BfD5Ad1E1277";
+// const mayaAddress = "0x5072061e4375C97B77dD9697DC9f6c1F33aE5054";
 
 export default {
   name: "HelloWorld",
