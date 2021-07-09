@@ -1,20 +1,18 @@
 
 <template>
   <div class="hello">
-    <button @click="fetchGreeting">Fetch Greeting</button>
-    <button @click="setGreeting">Set Greeting</button>
-    <button @click="setCounter">Set Counter</button>
+    <button @click="createNFT">nft</button>
+    <button @click="getBlance">get balance</button>
+    <button @click="setApproved">get approved</button>
+    <button @click="transfer">transfer</button>
     <input v-model="gt" />
   </div>
 </template>
 
 <script>
-// import Greeter from "../artifacts/contracts/Greeter.sol/Greeter.json";
-import Greeter from "../../artifacts/contracts/Greeter.sol/Greeter.json";
+import MayaCollectible from "../../artifacts/contracts/MayaCollectible.sol/MayaCollectible.json";
 import { ethers } from "ethers";
-// const greeterAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
-const greeterAddress = "0x5F1a9e86AD25190c0388c2C62F92BfD5Ad1E1277";
-// const mayaAddress = "0x5072061e4375C97B77dD9697DC9f6c1F33aE5054";
+const mayaAddress = "0xae0FF445E2Ea570064FF641341f274E99987cFaa";
 
 export default {
   name: "HelloWorld",
@@ -24,6 +22,7 @@ export default {
   data() {
     return {
       gt: "",
+      tokenId: -1,
     };
   },
   methods: {
@@ -31,61 +30,89 @@ export default {
     async requestAccount() {
       await window.ethereum.request({ method: "eth_requestAccounts" });
     },
-    // 获取greet值
-    async fetchGreeting() {
+    // 创建nft
+    async createNFT() {
       if (typeof window.ethereum !== "undefined") {
+        await this.requestAccount();
+        const [account] = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        let tokenUri =
+          "https://gateway.pinata.cloud/ipfs/QmRyhU31QeHmiAvnUWhDMi7AsF5fJHY5byZsDbVPQxEkhg";
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          mayaAddress,
+          MayaCollectible.abi,
+          signer
+        );
+        console.log(account);
+        console.log(tokenUri);
+        const transaction = await contract.awardItem(account, tokenUri);
+        const data = await transaction.wait();
+        this.tokenId = data.events[0].args.tokenId;
+        console.log("tokenid", data.events[0].args.tokenId.toString());
+      }
+    },
+    // nft 拥有的数量
+    async getBlance() {
+      if (typeof window.ethereum !== "undefined") {
+        await this.requestAccount();
+        const [account] = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const contract = new ethers.Contract(
-          greeterAddress,
-          Greeter.abi,
+          mayaAddress,
+          MayaCollectible.abi,
           provider
         );
-        try {
-          const data = await contract.greet();
-          const data2 = await contract.count();
-          console.log("data: ", data, data2);
-        } catch (err) {
-          console.log("error: ", err);
-        }
+        const count = await contract.balanceOf(account);
+        console.log("has:", count.toString());
       }
     },
-    // 修改greet值
-    async setGreeting() {
-      if (!this.gt) return;
-
+    // 获取授权
+    async setApproved() {
       if (typeof window.ethereum !== "undefined") {
         await this.requestAccount();
+        const [account] = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(
-          greeterAddress,
-          Greeter.abi,
+          mayaAddress,
+          MayaCollectible.abi,
           signer
         );
-        console.log(this.gt);
-        const transaction = await contract.setGreeting(this.gt);
-        this.gt = "";
-        await transaction.wait();
-        this.fetchGreeting();
+        await contract.approve(account, this.tokenId);
+        console.log(account, "has approved ", this.tokenId);
       }
     },
-    async setCounter() {
-      if (!this.gt) return;
-
+    // 交易
+    async transfer() {
+      const otherAccount = "0x5F1a9e86AD25190c0388c2C62F92BfD5Ad1E1277";
+      // function safeTransferFrom(address _from, address _to, uint256 _tokenId) external payable;
       if (typeof window.ethereum !== "undefined") {
         await this.requestAccount();
+        const [account] = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const contract = new ethers.Contract(
-          greeterAddress,
-          Greeter.abi,
+          mayaAddress,
+          MayaCollectible.abi,
           signer
         );
-        console.log(this.gt);
-        const transaction = await contract.setCounter(this.gt + "test");
-        this.gt = "";
+        console.log("start transfer");
+        const transaction = await contract.transferFrom(
+          account,
+          otherAccount,
+          this.tokenId
+        );
         await transaction.wait();
-        this.fetchGreeting();
+        console.log(account, "has transfer to", otherAccount, this.tokenId);
       }
     },
   },
