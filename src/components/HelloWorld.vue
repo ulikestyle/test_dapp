@@ -5,7 +5,19 @@
     <button @click="getBlance">get balance</button>
     <button @click="setApproved">get approved</button>
     <button @click="transfer">transfer</button>
-    <input v-model="gt" />
+    <button @click="getOwner">getOwner</button>
+    <div>
+      <p>gt</p>
+      <input v-model="gt" />
+    </div>
+    <div>
+      <p>tokenID</p>
+      <input v-model="tokenId" />
+    </div>
+    <div>
+      <p>otherAddress</p>
+      <input v-model="otherAddress" />
+    </div>
   </div>
 </template>
 
@@ -22,7 +34,8 @@ export default {
   data() {
     return {
       gt: "",
-      tokenId: -1,
+      tokenId: "10",
+      otherAddress: "",
     };
   },
   methods: {
@@ -46,6 +59,7 @@ export default {
           MayaCollectible.abi,
           signer
         );
+        ethers.BigNumber
         console.log(account);
         console.log(tokenUri);
         const transaction = await contract.awardItem(account, tokenUri);
@@ -85,14 +99,23 @@ export default {
           MayaCollectible.abi,
           signer
         );
-        await contract.approve(account, this.tokenId);
+        const owner_address = await contract.ownerOf(ethers.BigNumber.from(this.tokenId))
+        console.log(owner_address)
+        console.log(account)
+        if (owner_address.toLowerCase() === account) {
+          console.log("cant approve by yourself")
+          return
+        }
+
+        const tokenId = ethers.BigNumber.from(this.tokenId)
+
+        await contract.approve(account, tokenId);
         console.log(account, "has approved ", this.tokenId);
       }
     },
     // 交易
     async transfer() {
-      const otherAccount = "0x5F1a9e86AD25190c0388c2C62F92BfD5Ad1E1277";
-      // function safeTransferFrom(address _from, address _to, uint256 _tokenId) external payable;
+      // const otherAccount = "0x64edb5045866dfa907d978eeBD54F38beb2CE0F9"; //dongdong account
       if (typeof window.ethereum !== "undefined") {
         await this.requestAccount();
         const [account] = await window.ethereum.request({
@@ -106,13 +129,39 @@ export default {
           signer
         );
         console.log("start transfer");
-        const transaction = await contract.transferFrom(
-          account,
-          otherAccount,
-          this.tokenId
-        );
+        // const transaction = await contract.transferFrom(
+        //   account,
+        //   otherAccount,
+        //   this.tokenId
+        // );
+        const tokenId = ethers.BigNumber.from(this.tokenId)
+        // const approved = await contract.getApproved(this.tokenId)
+        // if (!approved) {
+        //   console.log(this.tokenId, "is not approved by", account)
+        //   return
+        // }
+
+        const transaction = await contract["safeTransferFrom(address,address,uint256)"](account, this.otherAddress, tokenId);
         await transaction.wait();
-        console.log(account, "has transfer to", otherAccount, this.tokenId);
+        console.log(account, "has transfer to", this.otherAddress, this.tokenId);
+      }
+    },
+
+    // owner
+    async getOwner() {
+      if (typeof window.ethereum !== "undefined") {
+        await this.requestAccount();
+        // const [account] = await window.ethereum.request({
+        //   method: "eth_requestAccounts",
+        // });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const contract = new ethers.Contract(
+          mayaAddress,
+          MayaCollectible.abi,
+          provider,
+        );
+        const owner_address = await contract.ownerOf(ethers.BigNumber.from(this.tokenId))
+        console.log("owner_address is:", owner_address);
       }
     },
   },
